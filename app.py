@@ -73,11 +73,11 @@ def create_app():
 
                 session["admin"] = True
 
-                return redirect("/admin/dashboard")
+                return redirect("/dashboard")
 
             flash("Invalid login")
 
-        return render_template("admin/login.html")
+        return render_template("login.html")
 
     # ================= ADMIN DASHBOARD =================
 
@@ -112,7 +112,7 @@ def create_app():
 
         products = Product.query.all()
 
-        return render_template("admin/dashboard.html",
+        return render_template("dashboard.html",
                                products=products,
                                orders=[])
 
