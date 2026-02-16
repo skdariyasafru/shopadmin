@@ -1,0 +1,10 @@
+
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Your Cart</h2>
+{% for item in items %}
+<div>Product {{ item.product_id }} Qty {{ item.quantity }}</div>
+{% endfor %}
+</body>
+</html>
