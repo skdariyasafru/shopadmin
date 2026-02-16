@@ -1,10 +1,106 @@
-
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Admin Panel - Products</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #131921;
+            color: white;
+        }
+
+        img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            background: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-add {
+            background: green;
+            margin-bottom: 15px;
+        }
+    </style>
+
+</head>
 <body>
-<h2>Products</h2>
-{% for p in products %}
-<div>{{ p.name }} - ₹{{ p.price }}</div>
+
+<h1>Products</h1>
+
+<a href="/add_product">
+    <button class="btn btn-add">Add Product</button>
+</a>
+
+<table>
+
+<tr>
+    <th>ID</th>
+    <th>Image</th>
+    <th>Name</th>
+    <th>Price</th>
+    <th>Description</th>
+    <th>Action</th>
+</tr>
+
+{% for product in products %}
+<tr>
+
+    <td>{{ product.id }}</td>
+
+    <td>
+        {% if product.image %}
+        <img src="{{ product.image }}">
+        {% else %}
+        No Image
+        {% endif %}
+    </td>
+
+    <td>{{ product.name }}</td>
+
+    <td>₹{{ product.price }}</td>
+
+    <td>{{ product.description }}</td>
+
+    <td>
+        <a href="/delete_product/{{ product.id }}">
+            <button class="btn">Delete</button>
+        </a>
+    </td>
+
+</tr>
 {% endfor %}
+
+</table>
+
 </body>
 </html>
