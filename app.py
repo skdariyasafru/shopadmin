@@ -1,64 +1,147 @@
-
-from flask import Flask, render_template, request, redirect, flash
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from db import init_db, db
-from db_init import create_tables
-from models.models import User, Product, Cart, Order
+from flask import Flask, render_template, request, redirect, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from config import Config
+from models.models import Product, Order
 import os
 
-login_manager = LoginManager()
+db = SQLAlchemy()
 
 def create_app():
+
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
+    app.config.from_object(Config)
 
-    init_db(app)
-    create_tables(app)
+    db.init_app(app)
 
-    login_manager.init_app(app)
-    login_manager.login_view = "login"
+    # ================= ADMIN LOGIN =================
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
 
-    @login_manager.unauthorized_handler
-    def unauthorized():
-        return redirect("/")
 
-    @app.route("/")
-    def index():
-        products = Product.query.all()
-        return render_template("index.html", products=products)
-
-    @app.route("/login", methods=["POST"])
+    @app.route("/login", methods=["GET", "POST"])
     def login():
-        username = request.form.get("username")
-        password = request.form.get("password")
-        user = User.query.filter_by(username=username).first()
 
-        if user and user.password == password:
-            login_user(user)
-            return redirect("/")
+        if request.method == "POST":
 
-        flash("Invalid login")
-        return redirect("/")
+            username = request.form.get("username")
+            password = request.form.get("password")
+
+            if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+
+                session["admin"] = True
+                return redirect("/dashboard")
+
+            flash("Invalid login")
+
+        return render_template("login.html")
+
+
+    # ================= LOGOUT =================
 
     @app.route("/logout")
-    @login_required
     def logout():
-        logout_user()
-        return redirect("/")
 
-    @app.route("/cart")
-    @login_required
-    def cart():
-        items = Cart.query.filter_by(user_id=current_user.id).all()
-        return render_template("cart.html", items=items)
+        session.clear()
+        return redirect("/login")
+
+
+    # ================= DASHBOARD =================
+
+    @app.route("/")
+    @app.route("/dashboard")
+    def dashboard():
+
+        if not session.get("admin"):
+            return redirect("/login")
+
+        product_count = Product.query.count()
+        order_count = Order.query.count()
+
+        return render_template(
+            "dashboard.html",
+            product_count=product_count,
+            order_count=order_count
+        )
+
+
+    # ================= VIEW PRODUCTS =================
+
+    @app.route("/products")
+    def products():
+
+        if not session.get("admin"):
+            return redirect("/login")
+
+        products = Product.query.all()
+
+        return render_template("products.html", products=products)
+
+
+    # ================= ADD PRODUCT =================
+
+    @app.route("/add_product", methods=["GET", "POST"])
+    def add_product():
+
+        if not session.get("admin"):
+            return redirect("/login")
+
+        if request.method == "POST":
+
+            name = request.form.get("name")
+            price = request.form.get("price")
+            image = request.form.get("image")
+            description = request.form.get("description")
+
+            product = Product(
+                name=name,
+                price=price,
+                image=image,
+                description=description
+            )
+
+            db.session.add(product)
+            db.session.commit()
+
+            return redirect("/products")
+
+        return render_template("add_product.html")
+
+
+    # ================= DELETE PRODUCT =================
+
+    @app.route("/delete_product/<int:id>")
+    def delete_product(id):
+
+        if not session.get("admin"):
+            return redirect("/login")
+
+        product = Product.query.get(id)
+
+        if product:
+            db.session.delete(product)
+            db.session.commit()
+
+        return redirect("/products")
+
+
+    # ================= VIEW ORDERS =================
+
+    @app.route("/orders")
+    def orders():
+
+        if not session.get("admin"):
+            return redirect("/login")
+
+        orders = Order.query.all()
+
+        return render_template("orders.html", orders=orders)
+
 
     return app
+
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)
