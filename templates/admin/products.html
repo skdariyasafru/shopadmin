@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+</head>
+<body>
+
+<h1>Products</h1>
+
+<a href="/admin/dashboard">Dashboard</a> |
+<a href="/admin/orders">Orders</a> |
+<a href="/admin/logout">Logout</a>
+
+<hr>
+
+<table border="1">
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Price</th>
+<th>Image</th>
+</tr>
+
+{% for product in products %}
+
+<tr>
+
+<td>{{ product.id }}</td>
+<td>{{ product.name }}</td>
+<td>{{ product.price }}</td>
+<td>
+{% if product.image %}
+<img src="{{ product.image }}" width="50">
+{% endif %}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>
