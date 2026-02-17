@@ -1,22 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
 
-<h2>Admin Dashboard</h2>
+<h1>Admin Dashboard</h1>
 
-<a href="/admin/add_product">Add Product</a>
+<a href="/admin/products">Products</a> |
+<a href="/admin/orders">Orders</a> |
+<a href="/admin/logout">Logout</a>
 
-<h3>Products</h3>
-{% for p in products %}
-<div>
-{{p.name}} ₹{{p.price}}
-<a href="/admin/delete_product/{{p.id}}">Delete</a>
-</div>
-{% endfor %}
+<hr>
 
-<h3>Orders</h3>
-{% for o in orders %}
-<div>
-{{o.product_name}} ₹{{o.total}} Status: {{o.status}}
-<a href="/admin/update_order/{{o.id}}/Confirmed">Confirm</a>
-<a href="/admin/update_order/{{o.id}}/Shipped">Ship</a>
-<a href="/admin/update_order/{{o.id}}/Delivered">Deliver</a>
-</div>
-{% endfor %}
+<h2>Summary</h2>
+
+<p>Total Products: {{ products|length }}</p>
+<p>Total Orders: {{ orders|length }}</p>
+
+</body>
+</html>
