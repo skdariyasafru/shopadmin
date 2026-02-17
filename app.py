@@ -73,7 +73,7 @@ def create_app():
 
                 session["admin"] = True
 
-                return redirect("/dashboard")
+                return redirect("/admin/dashboard")
 
             flash("Invalid login")
 
