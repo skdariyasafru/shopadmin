@@ -1,3 +1,5 @@
+from db import db
+from model import Product, Order, User
 import os
 from flask import Flask, render_template, request, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -75,21 +77,36 @@ def create_app():
         return redirect("/admin/dashboard")
 
 
-    @app.route("/admin/dashboard")
-    def admin_dashboard():
+ @app.route("/admin/dashboard")
+def admin_dashboard():
 
-        if not session.get("admin"):
-            return redirect("/login")
+    if not session.get("admin"):
+        return redirect("/login")
 
-        product_count = Product.query.count()
-        order_count = Order.query.count()
+    product_count = Product.query.count()
 
-        return render_template(
-            "admin/dashboard.html",
-            product_count=product_count,
-            order_count=order_count
-        )
+    order_count = Order.query.count()
 
+    pending_orders = Order.query.filter_by(
+        status="Pending"
+    ).count()
+
+    delivered_orders = Order.query.filter_by(
+        status="Delivered"
+    ).count()
+
+    paid_orders = Order.query.filter_by(
+        payment_status="Paid"
+    ).count()
+
+    return render_template(
+        "admin/dashboard.html",
+        product_count=product_count,
+        order_count=order_count,
+        pending_orders=pending_orders,
+        delivered_orders=delivered_orders,
+        paid_orders=paid_orders
+    )
 
     # ================= PRODUCTS =================
 
@@ -121,7 +138,38 @@ def create_app():
             "admin/orders.html",
             orders=orders
         )
+    @app.route("/admin/order/<int:id>/paid")
+def mark_paid(id):
 
+    if not session.get("admin"):
+        return redirect("/login")
+
+    order = Order.query.get_or_404(id)
+
+    order.payment_status = "Paid"
+
+    db.session.commit()
+
+    flash("Payment marked as Paid")
+
+    return redirect("/admin/orders")
+
+
+@app.route("/admin/order/<int:id>/delivered")
+def mark_delivered(id):
+
+    if not session.get("admin"):
+        return redirect("/login")
+
+    order = Order.query.get_or_404(id)
+
+    order.status = "Delivered"
+
+    db.session.commit()
+
+    flash("Order marked as Delivered")
+
+    return redirect("/admin/orders")
 
     return app
 
