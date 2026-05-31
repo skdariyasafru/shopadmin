@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
-from model import Product, Order, User
+from models import Product, Order, User
 
 
 def create_app():
