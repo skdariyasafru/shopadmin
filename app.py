@@ -5,7 +5,6 @@ import threading
 import time
 from flask_login import LoginManager
 from config import Config
-from db import init_db
 from models.models import User,Order,Product
 
 
