@@ -1,25 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Products</title>
-</head>
-<body>
+{% extends "admin/base.html" %}
+
+{% block content %}
 
 <h1>Products</h1>
 
-<a href="/admin/dashboard">Dashboard</a> |
-<a href="/admin/orders">Orders</a> |
-<a href="/admin/logout">Logout</a>
-
-<hr>
-
-<table border="1">
+<table>
 
 <tr>
-<th>ID</th>
-<th>Name</th>
-<th>Price</th>
-<th>Image</th>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Price</th>
+    <th>PV</th>
+    <th>Image</th>
 </tr>
 
 {% for product in products %}
@@ -28,10 +20,12 @@
 
 <td>{{ product.id }}</td>
 <td>{{ product.name }}</td>
-<td>{{ product.price }}</td>
+<td>₹{{ product.price }}</td>
+<td>{{ product.pv_value }}</td>
+
 <td>
 {% if product.image %}
-<img src="{{ product.image }}" width="50">
+<img src="{{ product.image }}" width="60">
 {% endif %}
 </td>
 
@@ -41,5 +35,4 @@
 
 </table>
 
-</body>
-</html>
+{% endblock %}
