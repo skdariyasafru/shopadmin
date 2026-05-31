@@ -1,26 +1,19 @@
-from db import db
-from model import Product, Order, User
 import os
 from flask import Flask, render_template, request, redirect, session, flash
-from flask_sqlalchemy import SQLAlchemy
 
-# ================= INIT =================
+from db import db
+from model import Product, Order, User
 
-db = SQLAlchemy()
-
-# ================= MODELS =================
-
-
-# ================= APP FACTORY =================
 
 def create_app():
 
     app = Flask(__name__)
 
-    # SECRET KEY
-    app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "super-secret-key")
+    app.config["SECRET_KEY"] = os.getenv(
+        "SECRET_KEY",
+        "super-secret-key"
+    )
 
-    # DATABASE (Supabase)
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
         "DATABASE_URL"
     )
@@ -29,11 +22,15 @@ def create_app():
 
     db.init_app(app)
 
-    # ================= ADMIN LOGIN CONFIG =================
+    ADMIN_USERNAME = os.getenv(
+        "ADMIN_USERNAME",
+        "admin"
+    )
 
-    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-
+    ADMIN_PASSWORD = os.getenv(
+        "ADMIN_PASSWORD",
+        "admin123"
+    )
 
     # ================= LOGIN =================
 
@@ -45,7 +42,10 @@ def create_app():
             username = request.form.get("username")
             password = request.form.get("password")
 
-            if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            if (
+                username == ADMIN_USERNAME
+                and password == ADMIN_PASSWORD
+            ):
 
                 session["admin"] = True
 
@@ -54,7 +54,6 @@ def create_app():
             flash("Invalid username or password")
 
         return render_template("login.html")
-
 
     # ================= LOGOUT =================
 
@@ -65,8 +64,7 @@ def create_app():
 
         return redirect("/login")
 
-
-    # ================= DASHBOARD =================
+    # ================= HOME =================
 
     @app.route("/")
     def home():
@@ -76,37 +74,38 @@ def create_app():
 
         return redirect("/admin/dashboard")
 
+    # ================= DASHBOARD =================
 
- @app.route("/admin/dashboard")
-def admin_dashboard():
+    @app.route("/admin/dashboard")
+    def admin_dashboard():
 
-    if not session.get("admin"):
-        return redirect("/login")
+        if not session.get("admin"):
+            return redirect("/login")
 
-    product_count = Product.query.count()
+        product_count = Product.query.count()
 
-    order_count = Order.query.count()
+        order_count = Order.query.count()
 
-    pending_orders = Order.query.filter_by(
-        status="Pending"
-    ).count()
+        pending_orders = Order.query.filter_by(
+            status="Pending"
+        ).count()
 
-    delivered_orders = Order.query.filter_by(
-        status="Delivered"
-    ).count()
+        delivered_orders = Order.query.filter_by(
+            status="Delivered"
+        ).count()
 
-    paid_orders = Order.query.filter_by(
-        payment_status="Paid"
-    ).count()
+        paid_orders = Order.query.filter_by(
+            payment_status="Paid"
+        ).count()
 
-    return render_template(
-        "admin/dashboard.html",
-        product_count=product_count,
-        order_count=order_count,
-        pending_orders=pending_orders,
-        delivered_orders=delivered_orders,
-        paid_orders=paid_orders
-    )
+        return render_template(
+            "admin/dashboard.html",
+            product_count=product_count,
+            order_count=order_count,
+            pending_orders=pending_orders,
+            delivered_orders=delivered_orders,
+            paid_orders=paid_orders
+        )
 
     # ================= PRODUCTS =================
 
@@ -123,7 +122,6 @@ def admin_dashboard():
             products=products
         )
 
-
     # ================= ORDERS =================
 
     @app.route("/admin/orders")
@@ -132,49 +130,53 @@ def admin_dashboard():
         if not session.get("admin"):
             return redirect("/login")
 
-        orders = Order.query.all()
+        orders = Order.query.order_by(
+            Order.created_at.desc()
+        ).all()
 
         return render_template(
             "admin/orders.html",
             orders=orders
         )
+
+    # ================= MARK PAID =================
+
     @app.route("/admin/order/<int:id>/paid")
-def mark_paid(id):
+    def mark_paid(id):
 
-    if not session.get("admin"):
-        return redirect("/login")
+        if not session.get("admin"):
+            return redirect("/login")
 
-    order = Order.query.get_or_404(id)
+        order = Order.query.get_or_404(id)
 
-    order.payment_status = "Paid"
+        order.payment_status = "Paid"
 
-    db.session.commit()
+        db.session.commit()
 
-    flash("Payment marked as Paid")
+        flash("Payment marked as Paid")
 
-    return redirect("/admin/orders")
+        return redirect("/admin/orders")
 
+    # ================= MARK DELIVERED =================
 
-@app.route("/admin/order/<int:id>/delivered")
-def mark_delivered(id):
+    @app.route("/admin/order/<int:id>/delivered")
+    def mark_delivered(id):
 
-    if not session.get("admin"):
-        return redirect("/login")
+        if not session.get("admin"):
+            return redirect("/login")
 
-    order = Order.query.get_or_404(id)
+        order = Order.query.get_or_404(id)
 
-    order.status = "Delivered"
+        order.status = "Delivered"
 
-    db.session.commit()
+        db.session.commit()
 
-    flash("Order marked as Delivered")
+        flash("Order marked as Delivered")
 
-    return redirect("/admin/orders")
+        return redirect("/admin/orders")
 
     return app
 
-
-# ================= RUN =================
 
 app = create_app()
 
