@@ -1,25 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-</head>
-<body>
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
 
 <h1>Admin Dashboard</h1>
 
-<a href="/admin/products">Products</a> |
-<a href="/admin/orders">Orders</a> |
-<a href="/admin/logout">Logout</a>
+<div class="card">
+    <h3>Total Products : {{ product_count }}</h3>
+</div>
 
-<hr>
+<div class="card">
+    <h3>Total Orders : {{ order_count }}</h3>
+</div>
 
-<h2>Summary</h2>
+<div class="card">
+    <h3>Pending Orders : {{ pending_orders }}</h3>
+</div>
 
-<p>Total Products: {{ products|length }}</p>
-<p>Total Orders: {{ orders|length }}</p>
-<p>Total Products: {{ product_count }}</p>
-<p>Total Orders: {{ order_count }}</p>
-<p>Pending Orders: {{ pending_orders }}</p>
-<p>Delivered Orders: {{ delivered_orders }}</p>
-</body>
-</html>
+<div class="card">
+    <h3>Delivered Orders : {{ delivered_orders }}</h3>
+</div>
+
+{% endblock %}
