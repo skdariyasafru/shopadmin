@@ -115,3 +115,19 @@ class Order(db.Model):
         default=datetime.utcnow,
         index=True
     )
+    status = db.Column(
+        db.String(50),
+        default="Pending"
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        default=datetime.utcnow,
+        index=True
+    )
+
+
+
+
+
+
