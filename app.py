@@ -8,25 +8,6 @@ db = SQLAlchemy()
 
 # ================= MODELS =================
 
-class Product(db.Model):
-    __tablename__ = "product"
-
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200))
-    price = db.Column(db.Float)
-    image = db.Column(db.String(500))
-
-
-class Order(db.Model):
-    __tablename__ = "order"
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100))
-    product_name = db.Column(db.String(200))
-    price = db.Column(db.Float)
-    quantity = db.Column(db.Integer)
-    total = db.Column(db.Float)
-
 
 # ================= APP FACTORY =================
 
