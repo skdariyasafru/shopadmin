@@ -1,7 +1,13 @@
 import os
 from flask import Flask, render_template, request, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
-from models import Product, Order, User
+import threading
+import time
+import requests
+from flask_login import LoginManager
+from config import Config
+from db import init_db
+from models.models import User,Order,Product
 
 
 def create_app():
