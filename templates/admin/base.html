@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+
+    <style>
+        body{
+            margin:0;
+            font-family:Arial,sans-serif;
+            background:#f4f6f9;
+        }
+
+        .sidebar{
+            position:fixed;
+            left:0;
+            top:0;
+            width:220px;
+            height:100%;
+            background:#1f2937;
+            color:white;
+        }
+
+        .sidebar h2{
+            text-align:center;
+            padding:20px;
+        }
+
+        .sidebar a{
+            display:block;
+            color:white;
+            text-decoration:none;
+            padding:12px 20px;
+        }
+
+        .sidebar a:hover{
+            background:#374151;
+        }
+
+        .content{
+            margin-left:220px;
+            padding:20px;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            margin-bottom:20px;
+            box-shadow:0 2px 5px rgba(0,0,0,.1);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            background:white;
+        }
+
+        th,td{
+            border:1px solid #ddd;
+            padding:10px;
+        }
+
+        th{
+            background:#111827;
+            color:white;
+        }
+
+        .btn{
+            padding:6px 10px;
+            color:white;
+            text-decoration:none;
+            border-radius:5px;
+        }
+
+        .green{background:green;}
+        .blue{background:blue;}
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+
+    <h2>Admin</h2>
+
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/products">Products</a>
+    <a href="/admin/orders">Orders</a>
+    <a href="/logout">Logout</a>
+
+</div>
+
+<div class="content">
+{% block content %}
+{% endblock %}
+</div>
+
+</body>
+</html>
