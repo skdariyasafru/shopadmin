@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, session, flash
-
-from db import db
+from flask_sqlalchemy import SQLAlchemy
 from model import Product, Order, User
 
 
