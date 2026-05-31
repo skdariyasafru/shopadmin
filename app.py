@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import threading
 import time
-import requests
 from flask_login import LoginManager
 from config import Config
 from db import init_db
