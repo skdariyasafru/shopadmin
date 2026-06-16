@@ -1,11 +1,17 @@
+```python
 import os
-from flask import Flask, render_template, request, redirect, session, flash
-from flask_sqlalchemy import SQLAlchemy
-import threading
-import time
-from flask_login import LoginManager
-from config import Config
-from models.models import User,Order,Product
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session,
+    flash
+)
+
+from db import db
+from models.models import User, Order, Product
 
 
 def create_app():
@@ -23,7 +29,12 @@ def create_app():
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    
+    # Initialize SQLAlchemy
+    db.init_app(app)
+
+    # Create tables if they don't exist
+    with app.app_context():
+        db.create_all()
 
     ADMIN_USERNAME = os.getenv(
         "ADMIN_USERNAME",
@@ -49,12 +60,11 @@ def create_app():
                 username == ADMIN_USERNAME
                 and password == ADMIN_PASSWORD
             ):
-
                 session["admin"] = True
-
                 return redirect("/admin/dashboard")
 
             flash("Invalid username or password")
+            return redirect("/login")
 
         return render_template("login.html")
 
@@ -72,10 +82,10 @@ def create_app():
     @app.route("/")
     def home():
 
-        if not session.get("admin"):
-            return redirect("/login")
+        if session.get("admin"):
+            return redirect("/admin/dashboard")
 
-        return redirect("/admin/dashboard")
+        return redirect("/login")
 
     # ================= DASHBOARD =================
 
@@ -185,3 +195,4 @@ app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)
+```
