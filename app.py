@@ -168,8 +168,9 @@ def create_app():
     return app
 
 
+# ================= RUN =================
+
 app = create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)
-unicorn app:app
