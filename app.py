@@ -1,198 +1,198 @@
-```python
 import os
 
 from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    session,
-    flash
+Flask,
+render_template,
+request,
+redirect,
+session,
+flash
 )
 
 from db import db
 from models.models import User, Order, Product
 
-
 def create_app():
 
-    app = Flask(__name__)
+```
+app = Flask(__name__)
 
-    app.config["SECRET_KEY"] = os.getenv(
-        "SECRET_KEY",
-        "super-secret-key"
+app.config["SECRET_KEY"] = os.getenv(
+    "SECRET_KEY",
+    "super-secret-key"
+)
+
+database_url = os.getenv("DATABASE_URL")
+
+if not database_url:
+    raise RuntimeError(
+        "DATABASE_URL environment variable is required"
     )
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
-        "DATABASE_URL"
-    )
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db.init_app(app)
 
-    # Initialize SQLAlchemy
-    db.init_app(app)
+with app.app_context():
+    db.create_all()
 
-    # Create tables if they don't exist
-    with app.app_context():
-        db.create_all()
+ADMIN_USERNAME = os.getenv(
+    "ADMIN_USERNAME",
+    "admin"
+)
 
-    ADMIN_USERNAME = os.getenv(
-        "ADMIN_USERNAME",
-        "admin"
-    )
+ADMIN_PASSWORD = os.getenv(
+    "ADMIN_PASSWORD",
+    "admin123"
+)
 
-    ADMIN_PASSWORD = os.getenv(
-        "ADMIN_PASSWORD",
-        "admin123"
-    )
+# ================= LOGIN =================
 
-    # ================= LOGIN =================
+@app.route("/login", methods=["GET", "POST"])
+def login():
 
-    @app.route("/login", methods=["GET", "POST"])
-    def login():
+    if request.method == "POST":
 
-        if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
 
-            username = request.form.get("username")
-            password = request.form.get("password")
-
-            if (
-                username == ADMIN_USERNAME
-                and password == ADMIN_PASSWORD
-            ):
-                session["admin"] = True
-                return redirect("/admin/dashboard")
-
-            flash("Invalid username or password")
-            return redirect("/login")
-
-        return render_template("login.html")
-
-    # ================= LOGOUT =================
-
-    @app.route("/logout")
-    def logout():
-
-        session.pop("admin", None)
-
-        return redirect("/login")
-
-    # ================= HOME =================
-
-    @app.route("/")
-    def home():
-
-        if session.get("admin"):
+        if (
+            username == ADMIN_USERNAME
+            and password == ADMIN_PASSWORD
+        ):
+            session["admin"] = True
             return redirect("/admin/dashboard")
 
+        flash("Invalid username or password")
         return redirect("/login")
 
-    # ================= DASHBOARD =================
+    return render_template("login.html")
 
-    @app.route("/admin/dashboard")
-    def admin_dashboard():
+# ================= LOGOUT =================
 
-        if not session.get("admin"):
-            return redirect("/login")
+@app.route("/logout")
+def logout():
 
-        product_count = Product.query.count()
+    session.pop("admin", None)
 
-        order_count = Order.query.count()
+    return redirect("/login")
 
-        pending_orders = Order.query.filter_by(
-            status="Pending"
-        ).count()
+# ================= HOME =================
 
-        delivered_orders = Order.query.filter_by(
-            status="Delivered"
-        ).count()
+@app.route("/")
+def home():
 
-        paid_orders = Order.query.filter_by(
-            payment_status="Paid"
-        ).count()
+    if session.get("admin"):
+        return redirect("/admin/dashboard")
 
-        return render_template(
-            "admin/dashboard.html",
-            product_count=product_count,
-            order_count=order_count,
-            pending_orders=pending_orders,
-            delivered_orders=delivered_orders,
-            paid_orders=paid_orders
-        )
+    return redirect("/login")
 
-    # ================= PRODUCTS =================
+# ================= DASHBOARD =================
 
-    @app.route("/admin/products")
-    def admin_products():
+@app.route("/admin/dashboard")
+def admin_dashboard():
 
-        if not session.get("admin"):
-            return redirect("/login")
+    if not session.get("admin"):
+        return redirect("/login")
 
-        products = Product.query.all()
+    product_count = Product.query.count()
 
-        return render_template(
-            "admin/products.html",
-            products=products
-        )
+    order_count = Order.query.count()
 
-    # ================= ORDERS =================
+    pending_orders = Order.query.filter_by(
+        status="Pending"
+    ).count()
 
-    @app.route("/admin/orders")
-    def admin_orders():
+    delivered_orders = Order.query.filter_by(
+        status="Delivered"
+    ).count()
 
-        if not session.get("admin"):
-            return redirect("/login")
+    paid_orders = Order.query.filter_by(
+        payment_status="Paid"
+    ).count()
 
-        orders = Order.query.order_by(
-            Order.created_at.desc()
-        ).all()
+    return render_template(
+        "admin/dashboard.html",
+        product_count=product_count,
+        order_count=order_count,
+        pending_orders=pending_orders,
+        delivered_orders=delivered_orders,
+        paid_orders=paid_orders
+    )
 
-        return render_template(
-            "admin/orders.html",
-            orders=orders
-        )
+# ================= PRODUCTS =================
 
-    # ================= MARK PAID =================
+@app.route("/admin/products")
+def admin_products():
 
-    @app.route("/admin/order/<int:id>/paid")
-    def mark_paid(id):
+    if not session.get("admin"):
+        return redirect("/login")
 
-        if not session.get("admin"):
-            return redirect("/login")
+    products = Product.query.all()
 
-        order = Order.query.get_or_404(id)
+    return render_template(
+        "admin/products.html",
+        products=products
+    )
 
-        order.payment_status = "Paid"
+# ================= ORDERS =================
 
-        db.session.commit()
+@app.route("/admin/orders")
+def admin_orders():
 
-        flash("Payment marked as Paid")
+    if not session.get("admin"):
+        return redirect("/login")
 
-        return redirect("/admin/orders")
+    orders = Order.query.order_by(
+        Order.created_at.desc()
+    ).all()
 
-    # ================= MARK DELIVERED =================
+    return render_template(
+        "admin/orders.html",
+        orders=orders
+    )
 
-    @app.route("/admin/order/<int:id>/delivered")
-    def mark_delivered(id):
+# ================= MARK PAID =================
 
-        if not session.get("admin"):
-            return redirect("/login")
+@app.route("/admin/order/<int:id>/paid")
+def mark_paid(id):
 
-        order = Order.query.get_or_404(id)
+    if not session.get("admin"):
+        return redirect("/login")
 
-        order.status = "Delivered"
+    order = Order.query.get_or_404(id)
 
-        db.session.commit()
+    order.payment_status = "Paid"
 
-        flash("Order marked as Delivered")
+    db.session.commit()
 
-        return redirect("/admin/orders")
+    flash("Payment marked as Paid")
 
-    return app
+    return redirect("/admin/orders")
+
+# ================= MARK DELIVERED =================
+
+@app.route("/admin/order/<int:id>/delivered")
+def mark_delivered(id):
+
+    if not session.get("admin"):
+        return redirect("/login")
+
+    order = Order.query.get_or_404(id)
+
+    order.status = "Delivered"
+
+    db.session.commit()
+
+    flash("Order marked as Delivered")
+
+    return redirect("/admin/orders")
+
+return app
 
 
 app = create_app()
 
-if __name__ == "__main__":
-    app.run(debug=True)
-```
+if __name__== "__main__":
+app.run(debug=True)
